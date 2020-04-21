@@ -1,7 +1,7 @@
 """
                         Supplementary code for the paper:
                             Bayesian CMA-ES
-                                      
+                              PPSN 2020           
 """
 
 import numpy as np
@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import matplotlib
+import pickle
 matplotlib.rcParams['pdf.fonttype'] = 42
 matplotlib.rcParams['ps.fonttype'] = 42
 #%%
@@ -324,16 +325,23 @@ def compare(func, mu_0, min_f, nb_seed, save_fig):
     df2['Error']= bcma_v
     df = pd.concat([df1, df2], axis = 0)
     df = df[df['Function_evaluations']<= iteration_max]
+    
+    error_cma = df[df['Method']=='CMA-ES']['Error'].mean()
+    error_bcma = df[df['Method']=='BCMA-ES']['Error'].mean()
+    
     f, ax = plt.subplots(figsize=(8, 5.2))
     ax.set(yscale="log")
-    if not save_fig: plt.title('Convergence comparison between CMA-ES and BCMA-ES\n'+func.__name__)
+    if not save_fig:
+        plt.title('Convergence comparison between CMA-ES and BCMA-ES\n'+func.__name__)
+    else:
+        plt.title(func.__name__)
     sns.lineplot(x="Function_evaluations", y="Error", data=df, hue="Method")
     if save_fig: 
         print(f'saved figure {func.__name__}_convergence.png')
-        plt.savefig(f'{func.__name__}_convergence.png')
+        plt.savefig(f'{func.__name__}_convergence_{mu_0[0]}.png')
     plt.show()
-    return df
-
+#    return df
+    return error_cma, error_bcma
 #%%
 """
 Optional functions to test: 
@@ -355,12 +363,73 @@ To have a plot of convergence for a given starting point, call compare function:
     -5th argument is flag to save figure
 """
 function =  [Rastrigin, Sphere, Schwefel1, Schwefel2]
-starting_points = [np.array([10,10]), np.array([10,10]),  \
-    np.array([400,400]), np.array([10,10])]
+starting_points = [
+                       [
+                        np.array([-20,-20]),
+                        np.array([-10,-10]),
+                        np.array([-5,-5]),
+                        np.array([5,5]),
+                        np.array([10,10]),
+                        np.array([20,20]),
+                        ],
+                       [
+                        np.array([-20,-20]),
+                        np.array([-10,-10]),
+                        np.array([-5,-5]),
+                        np.array([5,5]),
+                        np.array([10,10]),
+                        np.array([20,20]),
+                        ],
+                       [
+                        np.array([-400,-400]),
+                        np.array([-200,-200]),
+                        np.array([-100,-100]),
+                        np.array([100,100]),
+                        np.array([200,200]),
+                        np.array([400,400]),
+                        ], 
+                       [
+                        np.array([-20,-20]),
+                        np.array([-10,-10]),
+                        np.array([-5,-5]),
+                        np.array([5,5]),
+                        np.array([10,10]),
+                        np.array([20,20]),
+                        ],
+                    ]
+                       
 save_fig = True
 nb_seed = 30
 sns.set(font_scale = 1.3)
+
+dic_result = {}
+functions = []
+starting_pts = []
+cma_errors = []
+bcma_errors = []
+
 for i, func in enumerate(function):
-    compare(function[i], starting_points[i], 0, nb_seed, save_fig)
+    d_cma = {}
+    d_bcma = {}
+    d_method = {}
+    for j in range(len(starting_points[i])):
+        d_cma[f'{starting_points[i][j]}'], d_bcma[f'{starting_points[i][j]}'] = compare(function[i], starting_points[i][j], 0, nb_seed, save_fig)
+        functions.append(func.__name__)
+        starting_pts.append(f'{starting_points[i][j]}')
+        cma_errors.append(d_cma[f'{starting_points[i][j]}'])
+        bcma_errors.append(d_bcma[f'{starting_points[i][j]}'])
+    d_method['CMA-ES'] = d_cma
+    d_method['BCMA-ES'] = d_bcma
+    dic_result[func.__name__] = d_method
     
-  
+pickle.dump(dic_result, open( "results.p", "wb" ))
+#%%
+df = pd.DataFrame({
+        'function': functions,
+        'starting point' : starting_pts,
+        'cma ': cma_errors,
+        'bcma ': cma_errors,
+    })
+
+
+df.to_csv("results.csv", index=False)
