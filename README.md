@@ -5,7 +5,9 @@
 ## Content
 We provided herein 
 
-- the python code used for the paper 'BCMA-ES: a conjugate prior Bayesian optimization view'
+- the <a href="code/B_CMA-ES_PPSN_2020.py">python source code</a>  used for the paper 'BCMA-ES: a conjugate prior Bayesian optimization view'.
+- the <a href="paper/main.pdf">explanatory paper</a> about BCMA-ES.
+- the various plots located in <a href="Plot">plot folder</a>.
 
 ## Get Feedback
 - Feedback on the method is welcome. Please email me at the email provided in the paper
