@@ -324,10 +324,10 @@ def compare(func, mu_0, min_f, nb_seed, save_fig):
     df1['Error']= cma_v
     df2['Error']= bcma_v
     df = pd.concat([df1, df2], axis = 0)
-    df = df[df['Function_evaluations']<= iteration_max]
+    df = df[df['Function_evaluations']< iteration_max]
     
-    error_cma = df[df['Method']=='CMA-ES']['Error'].mean()
-    error_bcma = df[df['Method']=='BCMA-ES']['Error'].mean()
+    error_cma = df[np.logical_and(df['Method']=='CMA-ES',df['Function_evaluations']==iteration_max-1)]['Error'].mean()
+    error_bcma = df[np.logical_and(df['Method']=='BCMA-ES',df['Function_evaluations']==iteration_max-1)]['Error'].mean()
     
     f, ax = plt.subplots(figsize=(8, 5.2))
     ax.set(yscale="log")
@@ -338,7 +338,7 @@ def compare(func, mu_0, min_f, nb_seed, save_fig):
     sns.lineplot(x="Function_evaluations", y="Error", data=df, hue="Method")
     if save_fig: 
         print(f'saved figure {func.__name__}_convergence.png')
-        plt.savefig(f'{func.__name__}_convergence_{mu_0[0]}.png')
+        plt.savefig(f'plots\\{func.__name__}_convergence_{mu_0[0]}.png')
     plt.show()
 #    return df
     return error_cma, error_bcma
